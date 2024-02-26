@@ -1,0 +1,112 @@
+
+hashfunction puf, h,xor;
+
+
+macro KEY = h(MID,SMID,RNS,RNMP);
+
+
+
+protocol  authentication(MP,GWN,S)
+{
+
+	role MP{
+		fresh ID,MPid, Pw,MPW,MID,P,RNMP,T1 : Nonce;
+		var GM1, RNG,RNS,SMID,T2,T5 : Nonce;
+		
+		recv_M0(GWN,MP, {GM1}pk(k));
+
+		send_M1(MP,GWN,h(MPid,MPW,P),xor((ID,RNMP),h(GM1,MID,T1)),h(GM1,MID,RNMP,T1),T1);
+		
+		recv_G1(GWN,MP,xor(RNG,h(GM1,MID,RNMP,T2)), h(GM1,MID,RNG,RNMP,T2),T2);
+
+		recv_G3(GWN,MP,h(SMID,KEY,RNG),xor((SMID,RNS),h(RNG,RNMP,GM1, T5)),T5);
+
+		claim(MP, Alive);
+
+		claim(MP, Niagree);
+
+		claim(MP, Nisynch);
+
+		claim(MP, Weakagree);
+		
+		claim(MP,Secret, GM1);	
+
+		claim(MP,Secret, KEY);	
+	
+	
+ 
+
+	}
+
+
+
+	role GWN{
+		fresh GS1,GM1, GID, PG, g ,RNG,MPSK,SSK,T2,T3,T5: Nonce;
+		var SMID, ID,MPW,MID,MPid, P,RNMP,RNS,T4,T1:Nonce;
+
+		recv_s0(S,GWN, {SMID}pk(k));
+		send_M0(GWN,MP, {GM1}pk(k));
+		send_S01(GWN,S, {GS1}pk(k));
+
+		recv_M1(MP,GWN,h(MPid,MPW,P),xor((ID,RNMP),h(GM1,MID,T1)),h(GM1,MID,RNMP,T1),T1);
+		
+		send_G1(GWN,MP,xor(RNG,h(GM1,MID,RNMP,T2)), h(GM1,MID,RNG,RNMP,T2),T2);
+		
+		send_G2(GWN,S,xor((RNG,RNMP),h(GS1,SMID,T3)),xor(MID,h(GS1,SMID,RNG,T3)),h(MID,RNMP,RNG,GS1,SMID,T3),T3);
+
+		recv_S1(S,GWN,xor(RNS,h(SMID,GS1,RNG,T4)),h(SMID,RNS,RNG,GS1,T4),h(SMID,KEY,RNG),T4);
+		
+		send_G3(GWN,MP,h(SMID,KEY,RNG),xor((SMID,RNS),h(RNG,RNMP,GM1, T5)),T5);
+
+		claim(GWN, Alive);
+
+		claim(GWN, Niagree);
+
+		claim(GWN, Nisynch);
+
+		claim(GWN, Weakagree);
+		
+		claim(GWN,Secret, GM1);	
+
+		claim(GWN,Secret, KEY);	
+	
+	
+
+
+	}
+
+
+	role S
+	{
+		fresh  SID,  X,SMID,RNS,T4 : Nonce;
+		var  GS1,GS1,MID,RNMP,RNG,T3 :Nonce;
+		recv_S01(GWN,S, {GS1}pk(k));
+
+		send_s0(S,GWN, {SMID}pk(k));
+		recv_G2(GWN,S,xor((RNG,RNMP),h(GS1,SMID,T3)),xor(MID,h(GS1,SMID,RNG,T3)),h(MID,RNMP,RNG,GS1,SMID,T3),T3);
+		
+		send_S1(S,GWN,xor(RNS,h(SMID,GS1,RNG,T4)),h(SMID,RNS,RNG,GS1,T4),h(SMID,KEY,RNG),T4);
+
+		claim(S,Secret, GS1);	
+		claim(S,Secret, KEY);	
+
+
+		claim(GWN, Alive);
+
+		claim(GWN, Niagree);
+
+		claim(GWN, Nisynch);
+
+		claim(GWN, Weakagree);
+
+	
+
+	}
+
+
+
+
+
+
+
+}
